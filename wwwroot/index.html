@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My API UI</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, button { margin: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Product Management</h1> <!-- Main Heading -->
+
+    <h3>Add Product</h3> <!-- Subheading -->
+    <input type="text" id="productName" placeholder="Product Name"> <!-- Input field for entering the product name -->
+    <input type="number" id="productPrice" placeholder="Price"> <!-- Input field for entering the price -->
+    <button onclick="addProduct()">Add Product</button> <!-- Calls the addProduct() function when is clicked --> 
+
+    <h3>Product List</h3> <!-- Subheading for listing products -->
+    <ul id="productList"></ul> <!-- Empty list where products will be displayed dynamically -->
+
+    <script>
+        const apiUrl = "http://localhost:5226/api/products"; // Sets the base URL for API calls
+
+        // Fetch and display products
+        function loadProducts() {
+            $.get(apiUrl, function(products) { // Fetch products from the API
+                $("#productList").empty(); // Clear the list to prevent duplicates
+                products.forEach(product => { // Loop tthrough each product in the response
+                    $("#productList").append(
+                        `<li>${product.name} - $${product.price} 
+                        <button onclick="deleteProduct(${product.productId})">Delete</button></li>` // Adds a delete button for each product (deleteProduct(id))
+                    );
+                });
+            });
+        }
+
+        // Add a new product
+        function addProduct() {
+            const product = {
+                name: $("#productName").val(), // Gets the product name from the input
+                price: parseFloat($("#productPrice").val()) // Gets the product price and paserFloat is goin to convert price from text to a number
+            };
+
+            $.ajax({
+                url: apiUrl,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(product),
+                success: function() { 
+                    loadProducts();
+                    $("#productName").val('');
+                    $("#productPrice").val('');
+                }
+            });
+        }
+
+        // Delete a product
+        function deleteProduct(id) {
+            $.ajax({
+                url: `${apiUrl}/${id}`,
+                type: "DELETE",
+                success: function() { loadProducts(); }
+            });
+        }
+
+        $(document).ready(function() {
+            loadProducts();
+        });
+    </script>
+
+</body>
+</html>
